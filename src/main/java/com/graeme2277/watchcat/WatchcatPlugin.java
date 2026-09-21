@@ -317,7 +317,7 @@ public class WatchcatPlugin extends Plugin
 	{
 		spiceObjects.clear();
 		WorldView worldView = client.getTopLevelWorldView();
-		if (worldView == null)
+		if (worldView == null || worldView.getScene() == null)
 		{
 			return;
 		}
