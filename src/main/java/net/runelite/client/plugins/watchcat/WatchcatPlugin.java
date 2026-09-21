@@ -71,6 +71,7 @@ import net.runelite.client.util.Text;
 )
 public class WatchcatPlugin extends Plugin
 {
+	private static final int BASEMENT_REGION_ID = 12186;
 	private static final int CRITICAL_HEALTH = 2;
 	private static final long SCREEN_FLASH_DURATION_MILLIS = 4_000L;
 	private static final String INSERT_PROMPT_PREFIX = "insert your";
@@ -132,6 +133,7 @@ public class WatchcatPlugin extends Plugin
 	private final Set<TileObject> spiceObjects = new HashSet<>();
 	private boolean criticalAlertSent;
 	private boolean insertCatPromptVisible;
+	private boolean inBasementLastTick;
 	private long screenFlashUntil;
 	private long noFoodWarningUntil;
 
@@ -151,6 +153,7 @@ public class WatchcatPlugin extends Plugin
 		clientThread.invokeLater(this::scanSpiceObjects);
 		criticalAlertSent = false;
 		insertCatPromptVisible = false;
+		inBasementLastTick = false;
 		screenFlashUntil = 0;
 		noFoodWarningUntil = 0;
 	}
@@ -165,6 +168,7 @@ public class WatchcatPlugin extends Plugin
 		spiceObjects.clear();
 		criticalAlertSent = false;
 		insertCatPromptVisible = false;
+		inBasementLastTick = false;
 		screenFlashUntil = 0;
 		noFoodWarningUntil = 0;
 	}
@@ -220,6 +224,24 @@ public class WatchcatPlugin extends Plugin
 	@Subscribe
 	public void onGameTick(GameTick event)
 	{
+		boolean inBasement = isInBasement();
+		if (!inBasement)
+		{
+			spiceObjects.clear();
+			criticalAlertSent = false;
+			insertCatPromptVisible = false;
+			inBasementLastTick = false;
+			screenFlashUntil = 0;
+			noFoodWarningUntil = 0;
+			return;
+		}
+
+		if (!inBasementLastTick)
+		{
+			scanSpiceObjects();
+			inBasementLastTick = true;
+		}
+
 		boolean promptVisible = containsInsertCatPrompt(
 			client.getWidget(InterfaceID.Chatmenu.UNIVERSE))
 			|| containsInsertCatPrompt(client.getWidget(InterfaceID.Chatmenu.OPTIONS));
@@ -254,6 +276,12 @@ public class WatchcatPlugin extends Plugin
 		}
 	}
 
+	boolean isInBasement()
+	{
+		return client.getLocalPlayer() != null
+			&& client.getLocalPlayer().getWorldLocation().getRegionID() == BASEMENT_REGION_ID;
+	}
+
 	Set<TileObject> getSpiceObjects()
 	{
 		return Collections.unmodifiableSet(spiceObjects);
@@ -261,7 +289,7 @@ public class WatchcatPlugin extends Plugin
 
 	private void addSpiceObject(TileObject tileObject)
 	{
-		if (tileObject != null && isSpiceObject(tileObject.getId()))
+		if (isInBasement() && tileObject != null && isSpiceObject(tileObject.getId()))
 		{
 			spiceObjects.add(tileObject);
 		}
@@ -306,12 +334,13 @@ public class WatchcatPlugin extends Plugin
 
 	boolean isScreenFlashActive()
 	{
-		return System.currentTimeMillis() < screenFlashUntil;
+		return isInBasement() && System.currentTimeMillis() < screenFlashUntil;
 	}
 
 	boolean isNoFoodWarningActive()
 	{
-		return config.noFoodAlert() && System.currentTimeMillis() < noFoodWarningUntil;
+		return isInBasement() && config.noFoodAlert()
+			&& System.currentTimeMillis() < noFoodWarningUntil;
 	}
 
 	private boolean hasCatFood()
@@ -361,6 +390,11 @@ public class WatchcatPlugin extends Plugin
 
 	NPC getFightingCat()
 	{
+		if (!isInBasement())
+		{
+			return null;
+		}
+
 		NPC cat = client.getFollower();
 		if (cat == null || getMaxHealth(cat.getId()) < 0 || cat.getHealthScale() <= 0)
 		{

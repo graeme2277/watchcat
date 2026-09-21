@@ -64,7 +64,7 @@ class WatchcatSpiceOverlay extends Overlay
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
-		if (!config.highlightSpiceTiles())
+		if (!config.highlightSpiceTiles() || !plugin.isInBasement())
 		{
 			return null;
 		}
