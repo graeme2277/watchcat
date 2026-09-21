@@ -71,7 +71,8 @@ import net.runelite.client.util.Text;
 )
 public class WatchcatPlugin extends Plugin
 {
-	private static final int BASEMENT_REGION_ID = 12186;
+	private static final int BASEMENT_WEST_REGION_ID = 12186;
+	private static final int BASEMENT_EAST_REGION_ID = 12442;
 	private static final int CRITICAL_HEALTH = 2;
 	private static final long SCREEN_FLASH_DURATION_MILLIS = 4_000L;
 	private static final String INSERT_PROMPT_PREFIX = "insert your";
@@ -278,8 +279,13 @@ public class WatchcatPlugin extends Plugin
 
 	boolean isInBasement()
 	{
-		return client.getLocalPlayer() != null
-			&& client.getLocalPlayer().getWorldLocation().getRegionID() == BASEMENT_REGION_ID;
+		if (client.getLocalPlayer() == null)
+		{
+			return false;
+		}
+
+		int regionId = client.getLocalPlayer().getWorldLocation().getRegionID();
+		return regionId == BASEMENT_WEST_REGION_ID || regionId == BASEMENT_EAST_REGION_ID;
 	}
 
 	Set<TileObject> getSpiceObjects()
