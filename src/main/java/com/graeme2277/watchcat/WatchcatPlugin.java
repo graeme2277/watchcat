@@ -41,6 +41,7 @@ import net.runelite.api.NPC;
 import net.runelite.api.Tile;
 import net.runelite.api.TileObject;
 import net.runelite.api.WorldView;
+import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.DecorativeObjectDespawned;
 import net.runelite.api.events.DecorativeObjectSpawned;
 import net.runelite.api.events.GameObjectDespawned;
@@ -296,7 +297,9 @@ public class WatchcatPlugin extends Plugin
 			return false;
 		}
 
-		int regionId = client.getLocalPlayer().getWorldLocation().getRegionID();
+		WorldPoint location = WorldPoint.fromLocalInstance(
+			client, client.getLocalPlayer().getLocalLocation());
+		int regionId = location.getRegionID();
 		return regionId == BASEMENT_WEST_REGION_ID || regionId == BASEMENT_EAST_REGION_ID;
 	}
 
