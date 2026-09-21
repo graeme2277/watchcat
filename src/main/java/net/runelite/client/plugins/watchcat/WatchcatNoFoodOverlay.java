@@ -25,78 +25,52 @@
  */
 package net.runelite.client.plugins.watchcat;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FontMetrics;
 import java.awt.Graphics2D;
-import java.awt.Polygon;
 import javax.inject.Inject;
 import net.runelite.api.Client;
-import net.runelite.api.Perspective;
-import net.runelite.api.TileObject;
-import net.runelite.api.gameval.ObjectID;
-import net.runelite.client.ui.overlay.Overlay;
-import net.runelite.client.ui.overlay.OverlayLayer;
+import net.runelite.client.ui.overlay.OverlayPanel;
 import net.runelite.client.ui.overlay.OverlayPosition;
-import net.runelite.client.ui.overlay.OverlayUtil;
+import net.runelite.client.ui.overlay.components.LineComponent;
 
-class WatchcatSpiceOverlay extends Overlay
+class WatchcatNoFoodOverlay extends OverlayPanel
 {
-	private static final Color RED_SPICE = new Color(210, 40, 40);
-	private static final Color ORANGE_SPICE = new Color(255, 135, 0);
-	private static final Color YELLOW_SPICE = new Color(255, 215, 0);
-	private static final Color BROWN_SPICE = new Color(140, 90, 40);
+	private static final String WARNING_TEXT = "No cat food in inventory!";
+	private static final Color BACKGROUND_COLOR = new Color(70, 70, 70, 200);
+	private static final Color FLASH_COLOR = new Color(180, 20, 20, 210);
 
 	private final Client client;
-	private final WatchcatConfig config;
 	private final WatchcatPlugin plugin;
 
 	@Inject
-	WatchcatSpiceOverlay(Client client, WatchcatConfig config, WatchcatPlugin plugin)
+	WatchcatNoFoodOverlay(Client client, WatchcatPlugin plugin)
 	{
 		this.client = client;
-		this.config = config;
 		this.plugin = plugin;
-		setPosition(OverlayPosition.DYNAMIC);
-		setLayer(OverlayLayer.ABOVE_SCENE);
+		setPosition(OverlayPosition.ABOVE_CHATBOX_RIGHT);
 	}
 
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
-		if (!config.highlightSpiceTiles())
+		if (!plugin.isNoFoodWarningActive())
 		{
 			return null;
 		}
 
-		for (TileObject spiceObject : plugin.getSpiceObjects())
-		{
-			Polygon polygon = Perspective.getCanvasTilePoly(client, spiceObject.getLocalLocation());
-			if (polygon == null)
-			{
-				continue;
-			}
+		panelComponent.getChildren().clear();
+		panelComponent.getChildren().add(LineComponent.builder()
+			.left(WARNING_TEXT)
+			.leftColor(Color.WHITE)
+			.build());
 
-			Color color = getSpiceColor(spiceObject.getId());
-			Color fillColor = new Color(color.getRed(), color.getGreen(), color.getBlue(), 70);
-			OverlayUtil.renderPolygon(graphics, polygon, color, fillColor, new BasicStroke(2));
-		}
-		return null;
-	}
-
-	private static Color getSpiceColor(int objectId)
-	{
-		switch (objectId)
-		{
-			case ObjectID._100_DAVE_SPICE_RED:
-				return RED_SPICE;
-			case ObjectID._100_DAVE_SPICE_ORANGE:
-				return ORANGE_SPICE;
-			case ObjectID._100_DAVE_SPICE_BROWN:
-				return BROWN_SPICE;
-			case ObjectID._100_DAVE_SPICE_YELLOW:
-			default:
-				return YELLOW_SPICE;
-		}
+		FontMetrics metrics = graphics.getFontMetrics();
+		panelComponent.setPreferredSize(new Dimension(metrics.stringWidth(WARNING_TEXT) + 20, 0));
+		panelComponent.setBackgroundColor(client.getGameCycle() % 40 >= 20
+			? FLASH_COLOR
+			: BACKGROUND_COLOR);
+		return super.render(graphics);
 	}
 }

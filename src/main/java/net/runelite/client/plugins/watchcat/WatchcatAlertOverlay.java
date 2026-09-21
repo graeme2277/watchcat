@@ -27,21 +27,17 @@ package net.runelite.client.plugins.watchcat;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import javax.inject.Inject;
 import net.runelite.api.Client;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
-import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.overlay.OverlayPosition;
 
 class WatchcatAlertOverlay extends Overlay
 {
 	private static final long FLASH_INTERVAL_MILLIS = 250L;
 	private static final Color FLASH_COLOR = new Color(255, 0, 0, 90);
-	private static final Color WARNING_BACKGROUND = new Color(20, 20, 20, 230);
-	private static final String NO_FOOD_WARNING = "NO CAT FOOD IN INVENTORY";
 
 	private final Client client;
 	private final WatchcatPlugin plugin;
@@ -70,29 +66,7 @@ class WatchcatAlertOverlay extends Overlay
 			graphics.fillRect(0, 0, client.getCanvasWidth(), client.getCanvasHeight());
 		}
 
-		if (plugin.isNoFoodWarningActive())
-		{
-			renderNoFoodWarning(graphics);
-		}
 		graphics.setColor(previousColor);
 		return null;
-	}
-
-	private void renderNoFoodWarning(Graphics2D graphics)
-	{
-		graphics.setFont(FontManager.getRunescapeBoldFont());
-		FontMetrics metrics = graphics.getFontMetrics();
-		int padding = 14;
-		int width = metrics.stringWidth(NO_FOOD_WARNING) + padding * 2;
-		int height = metrics.getHeight() + padding;
-		int x = (client.getCanvasWidth() - width) / 2;
-		int y = client.getCanvasHeight() / 3;
-
-		graphics.setColor(WARNING_BACKGROUND);
-		graphics.fillRect(x, y, width, height);
-		graphics.setColor(Color.RED);
-		graphics.drawRect(x, y, width, height);
-		graphics.setColor(Color.WHITE);
-		graphics.drawString(NO_FOOD_WARNING, x + padding, y + padding / 2 + metrics.getAscent());
 	}
 }
