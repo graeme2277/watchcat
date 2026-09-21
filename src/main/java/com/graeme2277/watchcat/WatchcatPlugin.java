@@ -23,7 +23,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.plugins.watchcat;
+package com.graeme2277.watchcat;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Provides;
@@ -33,8 +33,9 @@ import java.util.Set;
 import javax.inject.Inject;
 import net.runelite.api.Actor;
 import net.runelite.api.Client;
-import net.runelite.api.Item;
 import net.runelite.api.GameObject;
+import net.runelite.api.GameState;
+import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.NPC;
 import net.runelite.api.Tile;
@@ -44,6 +45,7 @@ import net.runelite.api.events.DecorativeObjectDespawned;
 import net.runelite.api.events.DecorativeObjectSpawned;
 import net.runelite.api.events.GameObjectDespawned;
 import net.runelite.api.events.GameObjectSpawned;
+import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.GroundObjectDespawned;
 import net.runelite.api.events.GroundObjectSpawned;
@@ -172,6 +174,16 @@ public class WatchcatPlugin extends Plugin
 		inBasementLastTick = false;
 		screenFlashUntil = 0;
 		noFoodWarningUntil = 0;
+	}
+
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged event)
+	{
+		if (event.getGameState() == GameState.LOADING)
+		{
+			spiceObjects.clear();
+			inBasementLastTick = false;
+		}
 	}
 
 	@Subscribe

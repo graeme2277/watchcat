@@ -23,7 +23,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.plugins.watchcat;
+package com.graeme2277.watchcat;
 
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;

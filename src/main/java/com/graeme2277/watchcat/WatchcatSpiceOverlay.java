@@ -23,50 +23,80 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package net.runelite.client.plugins.watchcat;
+package com.graeme2277.watchcat;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.Polygon;
 import javax.inject.Inject;
 import net.runelite.api.Client;
+import net.runelite.api.Perspective;
+import net.runelite.api.TileObject;
+import net.runelite.api.gameval.ObjectID;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
 import net.runelite.client.ui.overlay.OverlayPosition;
+import net.runelite.client.ui.overlay.OverlayUtil;
 
-class WatchcatAlertOverlay extends Overlay
+class WatchcatSpiceOverlay extends Overlay
 {
-	private static final long FLASH_INTERVAL_MILLIS = 250L;
-	private static final Color FLASH_COLOR = new Color(255, 0, 0, 90);
+	private static final Color RED_SPICE = new Color(210, 40, 40);
+	private static final Color ORANGE_SPICE = new Color(255, 135, 0);
+	private static final Color YELLOW_SPICE = new Color(255, 215, 0);
+	private static final Color BROWN_SPICE = new Color(140, 90, 40);
 
 	private final Client client;
+	private final WatchcatConfig config;
 	private final WatchcatPlugin plugin;
 
 	@Inject
-	WatchcatAlertOverlay(Client client, WatchcatPlugin plugin)
+	WatchcatSpiceOverlay(Client client, WatchcatConfig config, WatchcatPlugin plugin)
 	{
 		this.client = client;
+		this.config = config;
 		this.plugin = plugin;
 		setPosition(OverlayPosition.DYNAMIC);
-		setLayer(OverlayLayer.ABOVE_WIDGETS);
+		setLayer(OverlayLayer.ABOVE_SCENE);
 	}
 
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
-		if (!plugin.isScreenFlashActive())
+		if (!config.highlightSpiceTiles() || !plugin.isInBasement())
 		{
 			return null;
 		}
 
-		Color previousColor = graphics.getColor();
-		if ((System.currentTimeMillis() / FLASH_INTERVAL_MILLIS) % 2 == 0)
+		for (TileObject spiceObject : plugin.getSpiceObjects())
 		{
-			graphics.setColor(FLASH_COLOR);
-			graphics.fillRect(0, 0, client.getCanvasWidth(), client.getCanvasHeight());
-		}
+			Polygon polygon = Perspective.getCanvasTilePoly(client, spiceObject.getLocalLocation());
+			if (polygon == null)
+			{
+				continue;
+			}
 
-		graphics.setColor(previousColor);
+			Color color = getSpiceColor(spiceObject.getId());
+			Color fillColor = new Color(color.getRed(), color.getGreen(), color.getBlue(), 70);
+			OverlayUtil.renderPolygon(graphics, polygon, color, fillColor, new BasicStroke(2));
+		}
 		return null;
+	}
+
+	private static Color getSpiceColor(int objectId)
+	{
+		switch (objectId)
+		{
+			case ObjectID._100_DAVE_SPICE_RED:
+				return RED_SPICE;
+			case ObjectID._100_DAVE_SPICE_ORANGE:
+				return ORANGE_SPICE;
+			case ObjectID._100_DAVE_SPICE_BROWN:
+				return BROWN_SPICE;
+			case ObjectID._100_DAVE_SPICE_YELLOW:
+			default:
+				return YELLOW_SPICE;
+		}
 	}
 }
