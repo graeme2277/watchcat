@@ -30,17 +30,3 @@ All alerts and spice tile highlights can be configured from the RuneLite plugin 
 ### Settings
 
 ![Watchcat settings](screenshots/settings.png)
-
-## Development
-
-Watchcat requires Java 11. Build it with:
-
-```shell
-./gradlew build
-```
-
-Run a development client with:
-
-```shell
-./gradlew run
-```
