@@ -57,9 +57,19 @@ public interface WatchcatConfig extends Config
 	@ConfigItem(
 		keyName = "noFoodAlert",
 		name = "No food alert",
-		description = "Send a notification and flash the screen when starting a fight without cat food"
+		description = "Show an overlay warning and flash the screen when starting a fight without cat food"
 	)
 	default boolean noFoodAlert()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "highlightSpiceTiles",
+		name = "Highlight spice tiles",
+		description = "Highlight each Behemoth tile with the colour of the spice it guards"
+	)
+	default boolean highlightSpiceTiles()
 	{
 		return true;
 	}

@@ -25,74 +25,80 @@
  */
 package net.runelite.client.plugins.watchcat;
 
+import com.google.common.collect.ImmutableMap;
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FontMetrics;
 import java.awt.Graphics2D;
+import java.awt.Polygon;
+import java.util.Map;
 import javax.inject.Inject;
 import net.runelite.api.Client;
+import net.runelite.api.Perspective;
+import net.runelite.api.WorldView;
+import net.runelite.api.coords.LocalPoint;
+import net.runelite.api.coords.WorldPoint;
 import net.runelite.client.ui.overlay.Overlay;
 import net.runelite.client.ui.overlay.OverlayLayer;
-import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.overlay.OverlayPosition;
+import net.runelite.client.ui.overlay.OverlayUtil;
 
-class WatchcatAlertOverlay extends Overlay
+class WatchcatSpiceOverlay extends Overlay
 {
-	private static final long FLASH_INTERVAL_MILLIS = 250L;
-	private static final Color FLASH_COLOR = new Color(255, 0, 0, 90);
-	private static final Color WARNING_BACKGROUND = new Color(20, 20, 20, 230);
-	private static final String NO_FOOD_WARNING = "NO CAT FOOD IN INVENTORY";
+	private static final Color RED_SPICE = new Color(210, 40, 40);
+	private static final Color ORANGE_SPICE = new Color(255, 135, 0);
+	private static final Color YELLOW_SPICE = new Color(255, 215, 0);
+	private static final Color BROWN_SPICE = new Color(140, 90, 40);
+	private static final Map<WorldPoint, Color> SPICE_TILES = ImmutableMap.of(
+		new WorldPoint(3078, 9901, 0), RED_SPICE,
+		new WorldPoint(3069, 9895, 0), ORANGE_SPICE,
+		new WorldPoint(3070, 9881, 0), YELLOW_SPICE,
+		new WorldPoint(3081, 9875, 0), BROWN_SPICE);
 
 	private final Client client;
-	private final WatchcatPlugin plugin;
+	private final WatchcatConfig config;
 
 	@Inject
-	WatchcatAlertOverlay(Client client, WatchcatPlugin plugin)
+	WatchcatSpiceOverlay(Client client, WatchcatConfig config)
 	{
 		this.client = client;
-		this.plugin = plugin;
+		this.config = config;
 		setPosition(OverlayPosition.DYNAMIC);
-		setLayer(OverlayLayer.ABOVE_WIDGETS);
+		setLayer(OverlayLayer.ABOVE_SCENE);
 	}
 
 	@Override
 	public Dimension render(Graphics2D graphics)
 	{
-		if (!plugin.isScreenFlashActive())
+		if (!config.highlightSpiceTiles())
 		{
 			return null;
 		}
 
-		Color previousColor = graphics.getColor();
-		if ((System.currentTimeMillis() / FLASH_INTERVAL_MILLIS) % 2 == 0)
+		WorldView worldView = client.getTopLevelWorldView();
+		if (worldView == null)
 		{
-			graphics.setColor(FLASH_COLOR);
-			graphics.fillRect(0, 0, client.getCanvasWidth(), client.getCanvasHeight());
+			return null;
 		}
 
-		if (plugin.isNoFoodWarningActive())
+		for (Map.Entry<WorldPoint, Color> spiceTile : SPICE_TILES.entrySet())
 		{
-			renderNoFoodWarning(graphics);
+			LocalPoint localPoint = LocalPoint.fromWorld(worldView, spiceTile.getKey());
+			if (localPoint == null)
+			{
+				continue;
+			}
+
+			Polygon polygon = Perspective.getCanvasTilePoly(client, localPoint);
+			if (polygon == null)
+			{
+				continue;
+			}
+
+			Color color = spiceTile.getValue();
+			Color fillColor = new Color(color.getRed(), color.getGreen(), color.getBlue(), 70);
+			OverlayUtil.renderPolygon(graphics, polygon, color, fillColor, new BasicStroke(2));
 		}
-		graphics.setColor(previousColor);
 		return null;
-	}
-
-	private void renderNoFoodWarning(Graphics2D graphics)
-	{
-		graphics.setFont(FontManager.getRunescapeBoldFont());
-		FontMetrics metrics = graphics.getFontMetrics();
-		int padding = 14;
-		int width = metrics.stringWidth(NO_FOOD_WARNING) + padding * 2;
-		int height = metrics.getHeight() + padding;
-		int x = (client.getCanvasWidth() - width) / 2;
-		int y = client.getCanvasHeight() / 3;
-
-		graphics.setColor(WARNING_BACKGROUND);
-		graphics.fillRect(x, y, width, height);
-		graphics.setColor(Color.RED);
-		graphics.drawRect(x, y, width, height);
-		graphics.setColor(Color.WHITE);
-		graphics.drawString(NO_FOOD_WARNING, x + padding, y + padding / 2 + metrics.getAscent());
 	}
 }

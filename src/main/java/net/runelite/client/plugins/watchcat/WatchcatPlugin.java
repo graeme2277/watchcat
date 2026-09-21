@@ -104,9 +104,13 @@ public class WatchcatPlugin extends Plugin
 	@Inject
 	private WatchcatAlertOverlay alertOverlay;
 
+	@Inject
+	private WatchcatSpiceOverlay spiceOverlay;
+
 	private boolean criticalAlertSent;
 	private boolean insertCatPromptVisible;
 	private long screenFlashUntil;
+	private long noFoodWarningUntil;
 
 	@Provides
 	WatchcatConfig provideConfig(ConfigManager configManager)
@@ -119,9 +123,11 @@ public class WatchcatPlugin extends Plugin
 	{
 		overlayManager.add(overlay);
 		overlayManager.add(alertOverlay);
+		overlayManager.add(spiceOverlay);
 		criticalAlertSent = false;
 		insertCatPromptVisible = false;
 		screenFlashUntil = 0;
+		noFoodWarningUntil = 0;
 	}
 
 	@Override
@@ -129,9 +135,11 @@ public class WatchcatPlugin extends Plugin
 	{
 		overlayManager.remove(overlay);
 		overlayManager.remove(alertOverlay);
+		overlayManager.remove(spiceOverlay);
 		criticalAlertSent = false;
 		insertCatPromptVisible = false;
 		screenFlashUntil = 0;
+		noFoodWarningUntil = 0;
 	}
 
 	@Subscribe
@@ -142,8 +150,9 @@ public class WatchcatPlugin extends Plugin
 			|| containsInsertCatPrompt(client.getWidget(InterfaceID.Chatmenu.OPTIONS));
 		if (promptVisible && !insertCatPromptVisible && config.noFoodAlert() && !hasCatFood())
 		{
-			notifier.notify("You have no food in your inventory for your cat!");
-			screenFlashUntil = System.currentTimeMillis() + SCREEN_FLASH_DURATION_MILLIS;
+			long warningEnd = System.currentTimeMillis() + SCREEN_FLASH_DURATION_MILLIS;
+			screenFlashUntil = warningEnd;
+			noFoodWarningUntil = warningEnd;
 		}
 		insertCatPromptVisible = promptVisible;
 
@@ -173,6 +182,11 @@ public class WatchcatPlugin extends Plugin
 	boolean isScreenFlashActive()
 	{
 		return System.currentTimeMillis() < screenFlashUntil;
+	}
+
+	boolean isNoFoodWarningActive()
+	{
+		return config.noFoodAlert() && System.currentTimeMillis() < noFoodWarningUntil;
 	}
 
 	private boolean hasCatFood()
