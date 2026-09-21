@@ -57,7 +57,7 @@ public interface WatchcatConfig extends Config
 	@ConfigItem(
 		keyName = "noFoodAlert",
 		name = "No food alert",
-		description = "Flash the screen when starting a fight without food for the cat"
+		description = "Send a notification and flash the screen when starting a fight without cat food"
 	)
 	default boolean noFoodAlert()
 	{

@@ -57,7 +57,7 @@ public class WatchcatPlugin extends Plugin
 {
 	private static final int CRITICAL_HEALTH = 2;
 	private static final long SCREEN_FLASH_DURATION_MILLIS = 4_000L;
-	private static final String INSERT_CAT_PROMPT = "Insert your cat";
+	private static final String INSERT_PROMPT_PREFIX = "insert your";
 	private static final Set<Integer> CAT_FOOD = ImmutableSet.of(
 		ItemID.SHRIMP, ItemID.RAW_SHRIMP,
 		ItemID.ANCHOVIES, ItemID.RAW_ANCHOVIES,
@@ -137,10 +137,12 @@ public class WatchcatPlugin extends Plugin
 	@Subscribe
 	public void onGameTick(GameTick event)
 	{
-		boolean promptVisible = containsText(
-			client.getWidget(InterfaceID.Chatmenu.UNIVERSE), INSERT_CAT_PROMPT);
+		boolean promptVisible = containsInsertCatPrompt(
+			client.getWidget(InterfaceID.Chatmenu.UNIVERSE))
+			|| containsInsertCatPrompt(client.getWidget(InterfaceID.Chatmenu.OPTIONS));
 		if (promptVisible && !insertCatPromptVisible && config.noFoodAlert() && !hasCatFood())
 		{
+			notifier.notify("You have no food in your inventory for your cat!");
 			screenFlashUntil = System.currentTimeMillis() + SCREEN_FLASH_DURATION_MILLIS;
 		}
 		insertCatPromptVisible = promptVisible;
@@ -191,14 +193,15 @@ public class WatchcatPlugin extends Plugin
 		return false;
 	}
 
-	private static boolean containsText(Widget widget, String expectedText)
+	private static boolean containsInsertCatPrompt(Widget widget)
 	{
-		if (widget == null || widget.isHidden())
+		if (widget == null)
 		{
 			return false;
 		}
 
-		if (Text.standardize(widget.getText()).contains(Text.standardize(expectedText)))
+		String text = Text.standardize(widget.getText());
+		if (text.contains(INSERT_PROMPT_PREFIX) && text.contains("cat"))
 		{
 			return true;
 		}
@@ -208,7 +211,7 @@ public class WatchcatPlugin extends Plugin
 		{
 			for (Widget child : children)
 			{
-				if (containsText(child, expectedText))
+				if (containsInsertCatPrompt(child))
 				{
 					return true;
 				}
