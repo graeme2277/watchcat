@@ -13,6 +13,24 @@ Watchcat helps protect player-owned cats while fighting Hell-Rat Behemoths in Ev
 
 All alerts and spice tile highlights can be configured from the RuneLite plugin settings.
 
+## Screenshots
+
+### Cat health and low-health warning
+
+![Cat health display and low-health warning](screenshots/health-display.png)
+
+### No-food warning
+
+![No-food warning before starting a fight](screenshots/no-food-warning.png)
+
+### Spice tile highlights
+
+![Coloured spice tile highlights](screenshots/spice-highlights.png)
+
+### Settings
+
+![Watchcat settings](screenshots/settings.png)
+
 ## Development
 
 Watchcat requires Java 11. Build it with:
